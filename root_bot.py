@@ -29,7 +29,7 @@ def add_to_soundcloud_playlist(url):
     menu = driver.find_element(By.CSS_SELECTOR,'#content > div > div.l-listen-wrapper > div.l-about-main > div > div:nth-child(1) > div > div > div.listenEngagement__footer.sc-py-1x.sc-px-2x > div > div:nth-child(1) > button.sc-button-more.sc-button-secondary.sc-button.sc-button-medium.sc-button-responsive'
     )
     menu.send_keys("\n")
-    sleep(3)
+    sleep(6)
     driver.find_element(By.XPATH,
                         '//button[text()="Zu Playlist hinzufügen"]').click()
     sleep(3)
