@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 from selenium.webdriver.chrome.options import Options
-from time import sleep
+from time import sleep, time
 import urllib.request as urllib2
 from bs4 import BeautifulSoup
 
@@ -85,9 +85,15 @@ async def on_message(message):
                         await message.channel.send("Sorry, but adding a playlist to a playlist doesnt really make much sense, does it?")
                         return
                     await message.channel.send("Now adding "+str(track_title))
+                    timestamp1 = time()
                     result = add_to_soundcloud_playlist(message.content)
+                    timestamp2 = time()
                     if result == "ADD_SUCCESS":
-                        await message.channel.send("Yes mate, "+str(track_title)+ " has been added to the playlist")
+                        response = "Yes mate, "
+                        response += str(track_title)
+                        response += " has been added to the playlist "
+                        response += "(This took %.2f seconds)" % (timestamp2-timestamp1)
+                        await message.channel.send(response)
                     else:
                         await message.channel.send(result)
                 else:
