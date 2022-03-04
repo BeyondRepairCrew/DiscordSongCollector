@@ -9,7 +9,7 @@ from time import sleep
 import urllib.request as urllib2
 from bs4 import BeautifulSoup
 
-TOKEN = ""
+TOKEN = str(open("../data.txt", "r").read())
 
 client = discord.Client()
 stream_requests_channel = "stream-requests"
