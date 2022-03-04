@@ -9,13 +9,7 @@ from time import sleep
 import urllib.request as urllib2
 from bs4 import BeautifulSoup
 
-#TODO add message which track was added
-#TODO add more exception handling and retries if adding fails
-#TODO add youtube playlist functionality
-#TODO add soundcloud download option via flag in message
-#TODO add duration needed to add track
-
-TOKEN = "[BOT_TOKEN]"
+TOKEN = ""
 
 client = discord.Client()
 stream_requests_channel = "stream-requests"
@@ -35,7 +29,7 @@ def add_to_soundcloud_playlist(url):
     menu = driver.find_element(By.CSS_SELECTOR,'#content > div > div.l-listen-wrapper > div.l-about-main > div > div:nth-child(1) > div > div > div.listenEngagement__footer.sc-py-1x.sc-px-2x > div > div:nth-child(1) > button.sc-button-more.sc-button-secondary.sc-button.sc-button-medium.sc-button-responsive'
     )
     menu.send_keys("\n")
-    sleep(3)
+    sleep(6)
     driver.find_element(By.XPATH,
                         '//button[text()="Zu Playlist hinzufügen"]').click()
     sleep(3)
@@ -53,7 +47,7 @@ def add_to_soundcloud_playlist(url):
             list_item_div.find_element_by_xpath(
                 './/button[text()="Zu Playlist hinzufügen"]').click()
             driver.quit()
-            return 'Yes mate, song has been added to the playlist'
+            return 'ADD_SUCCESS'
         except:
             driver.quit()
             return 'Sorry mate, something went wrong. Tell Pyro420 and he will try to find out what happened.'
@@ -88,7 +82,10 @@ async def on_message(message):
                 if is_soundcloud_link:
                     await message.channel.send("Now adding "+str(track_title))
                     result = add_to_soundcloud_playlist(message.content)
-                    await message.channel.send(result)
+                    if result == "ADD_SUCCESS":
+                        await message.channel.send("Yes mate, "+str(track_title)+ " has been added to the playlist")
+                    else:
+                        await message.channel.send(result)
                 else:
                     await message.channel.send("This doesnt seem to be leading me to soundcloud... hm but if you want Pyro420 to add another functionality, hit him up!")
             else:
