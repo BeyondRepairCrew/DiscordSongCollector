@@ -61,12 +61,13 @@ async def on_ready():
     #dont know what to do with this funtion yet
     pass
 
-def get_track_title(url):
+def get_track_data(url):
     req = urllib2.urlopen(url)
     soup = BeautifulSoup(req,features="lxml")
     title = str(soup.title.string).replace("Stream ","",1).replace(" | Listen online for free on SoundCloud","",1)
     is_soundcloud_link= "soundcloud.com" in req.geturl()
-    return title,is_soundcloud_link
+    is_soundcloud_playlist= "/sets/" in req.geturl()
+    return title,is_soundcloud_link, is_soundcloud_playlist
 
 @client.event
 async def on_message(message):
@@ -78,8 +79,11 @@ async def on_message(message):
     if str(message.channel).strip() == stream_requests_channel:
         try:
             if validators.url(message.content):
-                track_title, is_soundcloud_link = get_track_title(message.content)
+                track_title, is_soundcloud_link, is_playlist = get_track_data(message.content)
                 if is_soundcloud_link:
+                    if is_playlist:
+                        await message.channel.send("Sorry, but adding a playlist to a playlist doesnt really make much sense, does it?")
+                        return
                     await message.channel.send("Now adding "+str(track_title))
                     result = add_to_soundcloud_playlist(message.content)
                     if result == "ADD_SUCCESS":
