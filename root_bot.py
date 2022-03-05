@@ -78,39 +78,49 @@ def download_with_scdl(link):
     print(output)
 
 def get_latest_file():
-    list_of_files = glob.glob('mp3/*')
-    latest_file = max(list_of_files, key=os.path.getctime)
+    try:
+        list_of_files = glob.glob('mp3/*')
+        latest_file = max(list_of_files, key=os.path.getctime)
+    except ValueError:
+        latest_file = "error"
     return latest_file
 
 def remove_download_flag_from_message(message):
     command = " -download"
-    for i in range(len(command)):
-        message = message.rstrip(message[-1])
+    #for i in range(len(command)):
+    #    message = message.rstrip(message[-1])
+    message = message.split(" ")[0].strip()
     return message
 
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
-
     if str(message.channel).strip() == stream_requests_channel:
-        try:
-            download_requested = message.content.strip().endswith(" -download")
-            link = message.content.strip()
-            if download_requested:
-                print("[",message.content,"] ends with download")
-                link = remove_download_flag_from_message(link) 
-                print("stripped url:",link)
-                print("is url: ",validators.url(link))
-            if validators.url(link):
-                track_title, is_soundcloud_link, is_playlist = get_track_data(link)
-                if is_soundcloud_link:
-                    if is_playlist:
-                        await message.channel.send("Sorry, but adding a playlist to a playlist doesnt really make much sense, does it?")
-                        return
+        download_requested = message.content.strip().endswith(" -download")
+        download_only = message.content.strip().endswith(" -downloadonly")
+        if download_only:
+            download_requested = True
+        link = message.content.strip()
+        if download_requested:
+            link = remove_download_flag_from_message(link) 
+        link = link.split("?")[0]
+        if validators.url(link):
+            track_title, is_soundcloud_link, is_playlist = get_track_data(link)
+            if is_soundcloud_link:
+                if is_playlist:
+                    await message.channel.send("Sorry, but adding a playlist to a playlist doesnt really make much sense, does it?")
+                    return
+                if not download_only:
                     await message.channel.send("Now adding "+str(track_title))
                     timestamp1 = time()
-                    result = add_to_soundcloud_playlist(link)
+                    try:
+                        result = add_to_soundcloud_playlist(link)
+                    except Exception as e:
+                        print("[EXCEPTION] occured while downloading",link, "| stacktrace:")
+                        print(e)
+                        await message.channel.send('Sorry mate, something went wrong. Tell Pyro420 and he will try to find out what happened.')
+                        return
                     timestamp2 = time()
                     if result == "ADD_SUCCESS":
                         response = "Yes mate, "
@@ -118,21 +128,31 @@ async def on_message(message):
                         response += " has been added to the playlist "
                         response += "(This took %.2f seconds)" % (timestamp2-timestamp1)
                         await message.channel.send(response)
-                    if download_requested:
-                        download_with_scdl(link)
-                        file_name = get_latest_file()
-                        await message.channel.send(file=discord.File(file_name, os.path.basename(file_name)))
-                        os.remove(file_name)
                     else:
                         await message.channel.send(result)
-                else:
-                    await message.channel.send("This doesnt seem to be leading me to soundcloud... hm but if you want Pyro420 to add another functionality, hit him up!")
+                if download_requested:
+                    if download_only:
+                        response = "Downloading "+track_title
+                        await message.channel.send(response)
+                    download_with_scdl(link)
+                    file_name = get_latest_file()
+                    if file_name=="error":
+                        response = "Something went wrong while downloading "
+                        response += track_title
+                        response += " ... please make sure that its a valid url ok? :)"
+                        await message.channel.send(response)
+                    try:
+                        if not file_name=="error":
+                            await message.channel.send(file=discord.File(file_name, os.path.basename(file_name)))
+                    except Exception:
+                        await message.channel.send("Oof, that file is too heavy for discord, maximal file size is 8mb")    
+                    os.remove(file_name)
             else:
-                #await message.channel.send("Not a url "+link)
-                pass
-        except Exception as e :
-            print(e)
+                await message.channel.send("This doesnt seem to be leading me to soundcloud... hm but if you want Pyro420 to add another functionality, hit him up!")
+        else:
+            #await message.channel.send("Not a url "+link)
             pass
+        
 
 if __name__ == '__main__':
     client.run(TOKEN)
