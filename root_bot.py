@@ -107,6 +107,9 @@ async def on_message(message):
         link = link.split("?")[0]
         if validators.url(link):
             track_title, is_soundcloud_link, is_playlist = get_track_data(link)
+            if track_title==r"SoundCloud - Hear the world’s sounds":
+                await message.channel.send("This track doesnt exist")
+                return
             if is_soundcloud_link:
                 if is_playlist:
                     await message.channel.send("Sorry, but adding a playlist to a playlist doesnt really make much sense, does it?")
@@ -146,7 +149,8 @@ async def on_message(message):
                             await message.channel.send(file=discord.File(file_name, os.path.basename(file_name)))
                     except Exception:
                         await message.channel.send("Oof, that file is too heavy for discord, maximal file size is 8mb")    
-                    os.remove(file_name)
+                    if not file_name=="error":
+                        os.remove(file_name)
             else:
                 await message.channel.send("This doesnt seem to be leading me to soundcloud... hm but if you want Pyro420 to add another functionality, hit him up!")
         else:
