@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import validators
 import asyncio
+import responds
 
 TOKEN = str(open("../data.txt", "r").read())
 
@@ -101,8 +102,12 @@ async def on_message(message):
     await semaphore.acquire()
     if message.author == client.user:
         semaphore.release()
-        return
+        return    
     if str(message.channel).strip() == stream_requests_channel:
+        if message.content.strip() == "!help":
+            await message.channel.send(responds.help)
+            semaphore.release()
+            return
         download_requested = message.content.strip().endswith(" -download")
         download_only = message.content.strip().endswith(" -downloadonly")
         if download_only:
