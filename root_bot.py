@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import validators
 import asyncio
+import responds
 
 TOKEN = str(open("../data.txt", "r").read())
 
@@ -99,12 +100,14 @@ def remove_download_flag_from_message(message):
 async def on_message(message):
     global semaphore
     await semaphore.acquire()
-    print("semaphore acquired")
     if message.author == client.user:
         semaphore.release()
-        print("semaphore released")
-        return
+        return    
     if str(message.channel).strip() == stream_requests_channel:
+        if message.content.strip() == "!help":
+            await message.channel.send(responds.help)
+            semaphore.release()
+            return
         download_requested = message.content.strip().endswith(" -download")
         download_only = message.content.strip().endswith(" -downloadonly")
         if download_only:
@@ -118,13 +121,11 @@ async def on_message(message):
             if track_title==r"SoundCloud - Hear the world’s sounds":
                 await message.channel.send("This track doesnt exist")
                 semaphore.release()
-                print("semaphore released")
                 return
             if is_soundcloud_link:
                 if is_playlist:
                     await message.channel.send("Sorry, but adding a playlist to a playlist doesnt really make much sense, does it?")
                     semaphore.release()
-                    print("semaphore released")                
                     return
                 if not download_only:
                     await message.channel.send("Now adding "+str(track_title))
@@ -136,7 +137,6 @@ async def on_message(message):
                         print(e)
                         await message.channel.send('Sorry mate, something went wrong. Tell Pyro420 and he will try to find out what happened.')
                         semaphore.release()
-                        print("semaphore released")
                         return
                     timestamp2 = time()
                     if result == "ADD_SUCCESS":
@@ -170,7 +170,6 @@ async def on_message(message):
         else:
             #await message.channel.send("Not a url "+link)
             pass
-    print("semaphore released")
     semaphore.release()
         
 
