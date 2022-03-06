@@ -1,3 +1,4 @@
 #Ignore mp3 downloads folder
 mp3/*
 __pycache__
+*.db
