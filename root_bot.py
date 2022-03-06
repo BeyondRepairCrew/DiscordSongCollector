@@ -37,23 +37,24 @@ def add_to_soundcloud_playlist(url):
     sleep(6)
     driver.find_element(By.XPATH,
                         '//button[text()="Zu Playlist hinzufügen"]').click()
-    sleep(3)
-    list_item_div = driver.find_element(
-        By.XPATH, '''//a[@title="Root DNB's stream requests"]/..''')
-    song_already_added = False
+    sleep(5)
+    list_item_a_tag = driver.find_element(
+        By.XPATH, '''//a[@href="/luce-raspe/sets/root-dnbs-stream-requests"]/..''')
+    song_already_added = False 
     try:
-        list_item_div.find_element_by_xpath('.//button[text()="Hinzugefügt"]')
+        list_item_a_tag.find_element_by_xpath('.//button[text()="Hinzugefügt"]')
         song_already_added = True
     except:
         print('Song is already added')
 
     if not song_already_added:
         try:
-            list_item_div.find_element_by_xpath(
+            list_item_a_tag.find_element_by_xpath(
                 './/button[text()="Zu Playlist hinzufügen"]').click()
             driver.quit()
             return 'ADD_SUCCESS'
-        except:
+        except Exception as e:
+            print(e)
             driver.quit()
             return 'Sorry mate, something went wrong. Tell Pyro420 and he will try to find out what happened.'
     else:
@@ -70,7 +71,7 @@ def get_track_data(url):
     req = urllib2.urlopen(url)
     soup = BeautifulSoup(req,features="lxml")
     title = str(soup.title.string).replace("Stream ","",1).replace(" | Listen online for free on SoundCloud","",1)
-    is_soundcloud_link= "soundcloud.com" in req.geturl()
+    is_soundcloud_link= "soundcloud.com" in req.geturl()    
     is_soundcloud_playlist= "/sets/" in req.geturl()
     return title,is_soundcloud_link, is_soundcloud_playlist
 
