@@ -22,7 +22,7 @@ individual_responses = {
         "responses": [
             """Well, well, well, if it isnt the infamous DrHappybone""",
             """zzzZZZzzz... :sleeping: huh what? I thought i could take a nap... guess not. Thanks :rolling_eyes: okay back to work. :mechanical_arm::robot:""",
-            """You know what ... because its YOU doc, im gonna take my time and add the track EVEN slower""",
+            """You know what ... because its YOU doc, im gonna take my time and handle your request EVEN slower""",
             """Fun fact: bones cant be happy because they arent thinking beings. :nerd: Remember to get enough calcium to keep your bones strong and healthy tho :bone:""",
             """Big up the Notorious D.O.C. :mechanical_arm:"""
         ]
