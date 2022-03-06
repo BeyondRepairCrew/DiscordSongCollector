@@ -11,6 +11,7 @@ from pathlib import Path
 import validators
 import asyncio
 import responds
+from peewee import *
 
 TOKEN = str(open("../data.txt", "r").read())
 
@@ -19,6 +20,19 @@ stream_requests_channel = "stream-requests"
 
 semaphore = asyncio.Semaphore()
 
+db = SqliteDatabase('requesters.db')
+
+class Requester(Model):
+    name = CharField()
+    requests_count = IntegerField()
+    class Meta:
+        database = db
+
+
+def init_db():
+    db.connect()
+    db.create_tables([Requester])
+
 
 def add_to_soundcloud_playlist(url):
     chrome_options = Options()
@@ -26,7 +40,6 @@ def add_to_soundcloud_playlist(url):
         r'--user-data-dir=/home/pi/.config/chromium'
     )
     driver = webdriver.Chrome(chrome_options=chrome_options)
-    
     
     driver.get(url)
     
@@ -104,6 +117,7 @@ async def on_message(message):
     if message.author == client.user:
         semaphore.release()
         return    
+    print(message.author.name)
     if str(message.channel).strip() == stream_requests_channel:
         if message.content.strip() == "!help":
             await message.channel.send(responds.help)
@@ -175,4 +189,5 @@ async def on_message(message):
         
 
 if __name__ == '__main__':
+    init_db()
     client.run(TOKEN)
