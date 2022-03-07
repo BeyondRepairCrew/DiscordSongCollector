@@ -10,6 +10,12 @@ Example usage:
 - Just download the track and get it sent here
 Example usage: 
 ```<soundcloud-link> -downloadonly```
+- Show your personal stats!
+Example usage:
+```!stats```
+- Show the leader board of the people who posted the most requests!
+Example usage:
+```!statsall```
 
 The playlist all these tracks are added to is here: https://soundcloud.com/luce-raspe/sets/root-dnbs-stream-requests
 
@@ -17,6 +23,14 @@ Made by P̷̍̍y̴̓̾r̴͐͘o̶̊͒ ̷̈͂4̶̏̚2̴̰͗0̸͛̕
 """
 
 interlude = """Did someone say interlude? Cheers everybody :beers:"""
+
+stats_me = """Interested in your stats huh? Alright, coming right up :chart_with_upwards_trend: """
+
+stats_me_one = """Okay looks like you requested a single track. Cmon you can do better than that :yawning_face:"""
+
+stats_me_more_than_one = """Wow, looks like you added %3d tracks! Big up! :mechanical_arm:"""
+
+stats_all = ":trophy: Here they are, the Top %2d request beasts :trophy:"
 
 individual_responses = {
     183680794286489600 :{
@@ -67,6 +81,23 @@ individual_responses = {
             """ₜᵢₙᵧ ᵤₚ""",
             """ant-sized up to you Chance :ant:""",
             """ₘᵢ𝒸ᵣₒₛ𝒸ₒₚᵢ𝒸 ᵤₚ :microscope:"""
+        ]
+    },
+    900889106211561602: {
+        "name": "MadScientist",
+        "responses":[
+            """Man i would love to experience virtual reality like you humans do, but for me its just reality :robot:""",
+            """Hello hello the mad scientist, any chance you can give me some hardware upgrades? :mechanical_arm:""",
+            """ Big up Luis! :heart_eyes_cat: """
+        ]
+    },
+    240604042085007370: {
+        "name": "GrimFoe",
+        "responses": [
+            """Grimmy the Foe, what can i do for you today? Ah right, add a song.""",
+            """Hey Grimfoe, i could use new avatar. I hate looking like a mirrored version of Pyro""",
+            """Beep beep boop""",
+            """Happy drawing Grimfoe!"""
         ]
     }
 }

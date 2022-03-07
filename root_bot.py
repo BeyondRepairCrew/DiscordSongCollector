@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import validators
 import asyncio
+from peewee import *
 import responses
 from random import randint
 import re
@@ -21,6 +22,19 @@ stream_requests_channel = "stream-requests"
 
 semaphore = asyncio.Semaphore()
 
+db = SqliteDatabase('requesters.db')
+
+class Requester(Model):
+    discord_id = IntegerField()
+    name = CharField()
+    requests_count = IntegerField()
+    class Meta:
+        database = db
+
+
+def init_db():
+    #db.connect()
+    db.create_tables([Requester])
 
 def add_to_soundcloud_playlist(url):
     chrome_options = Options()
@@ -62,6 +76,32 @@ def add_to_soundcloud_playlist(url):
         driver.quit()
         return 'Sorry mate, the song is already in the playlist'
 
+def increment_requests_counter_for_discord_id(discord_id, user_name):
+    #db.connect()
+    requester = None
+    try:
+        requester = Requester.get(Requester.discord_id==discord_id)
+        requester.name = user_name #this is in order to keep the username updated
+        requester.requests_count+=1
+        requester.save()
+        print("Incremented count of ",requester.name," to ", str(requester.requests_count))
+    except:
+        requester = Requester(name=user_name, discord_id=discord_id, requests_count=1)
+        requester.save()
+        print("New requester (", user_name,") added")
+    db.close()
+    return requester.requests_count
+
+def get_requests_count_for_discord_id(discord_id):
+    try:
+        requester = Requester.get(Requester.discord_id==discord_id)
+        return int(requester.requests_count)
+    except:
+        return 0
+
+def get_top_requester(count):
+    return Requester.select().order_by(Requester.requests_count.desc()).limit(count)
+
 def get_individual_response(id):
     if id in responses.individual_responses:
         length = len(responses.individual_responses[id]["responses"])-1
@@ -74,12 +114,15 @@ async def on_ready():
     pass
 
 def get_track_data(url):
-    req = urllib2.urlopen(url)
-    soup = BeautifulSoup(req,features="lxml")
-    title = str(soup.title.string).replace("Stream ","",1).replace(" | Listen online for free on SoundCloud","",1)
-    is_soundcloud_link= "soundcloud.com" in req.geturl()    
-    is_soundcloud_playlist= "/sets/" in req.geturl()
-    return title,is_soundcloud_link, is_soundcloud_playlist
+    try:
+        req = urllib2.urlopen(url)
+        soup = BeautifulSoup(req,features="lxml")
+        title = str(soup.title.string).replace("Stream ","",1).replace(" | Listen online for free on SoundCloud","",1)
+        is_soundcloud_link= "soundcloud.com" in req.geturl()    
+        is_soundcloud_playlist= "/sets/" in req.geturl()
+        return title,is_soundcloud_link, is_soundcloud_playlist
+    except:
+        return "error",False,False
 
 def download_with_scdl(link):
     path = "mp3"
@@ -103,6 +146,14 @@ def remove_download_flag_from_message(message):
     message = message.split(" ")[0].strip()
     return message
 
+def get_stats_scoreboard(number_of_requesters):
+    response = responses.stats_all % number_of_requesters
+    place = 1
+    for requester in get_top_requester(number_of_requesters):
+        response+="\n"+str(place)+". "+requester.name+" with a request count of: "+str(requester.requests_count)
+        place+=1
+    return response
+
 @client.event
 async def on_message(message):
     global semaphore
@@ -113,11 +164,26 @@ async def on_message(message):
     if re.search("interlu+de",str(message.content).strip().lower()):
         await message.channel.send(responses.interlude)
 
+    if message.content.strip() == "!stats":
+        await message.reply(responses.stats_me, mention_author=True)
+        count = get_requests_count_for_discord_id(int(message.author.id))
+        if count == 0:
+            await message.reply("Hmm i dont seem to have any records of you. Increase your stats by requesting new tracks!",mention_author=True)
+        elif count==1:
+            await message.reply(responses.stats_me_one, mention_author=True)
+        else:
+            response = responses.stats_me_more_than_one % count
+            await message.reply(response, mention_author = True)
+    if message.content.strip()== "!statsall":
+        await message.channel.send(get_stats_scoreboard(3)) 
+
+
     if str(message.channel).strip() == stream_requests_channel:
         if message.content.strip() == "!help":
             await message.channel.send(responses.help)
             semaphore.release()
             return
+
         download_requested = message.content.strip().endswith(" -download")
         download_only = message.content.strip().endswith(" -downloadonly")
         if download_only:
@@ -157,6 +223,7 @@ async def on_message(message):
                         response += str(track_title)
                         response += " has been added to the playlist "
                         response += "(This took %.2f seconds)" % (timestamp2-timestamp1)
+                        increment_requests_counter_for_discord_id(int(message.author.id), str(message.author.name))
                         await message.channel.send(response)
                     else:
                         await message.channel.send(result)
@@ -187,4 +254,5 @@ async def on_message(message):
         
 
 if __name__ == '__main__':
+    init_db()
     client.run(TOKEN)
