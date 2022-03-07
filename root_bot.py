@@ -10,14 +10,10 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import validators
 import asyncio
-<<<<<<< HEAD
-import responds
 from peewee import *
-=======
 import responses
 from random import randint
 import re
->>>>>>> master
 
 TOKEN = str(open("../data.txt", "r").read())
 
@@ -127,14 +123,10 @@ async def on_message(message):
     await semaphore.acquire()
     if message.author == client.user:
         semaphore.release()
-<<<<<<< HEAD
-        return    
-=======
         return
     if re.search("interlu+de",str(message.content).strip().lower()):
         await message.channel.send(responses.interlude)
 
->>>>>>> master
     if str(message.channel).strip() == stream_requests_channel:
         if message.content.strip() == "!help":
             await message.channel.send(responses.help)
