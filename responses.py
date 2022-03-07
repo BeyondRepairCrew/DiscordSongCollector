@@ -15,6 +15,9 @@ The playlist all these tracks are added to is here: https://soundcloud.com/luce-
 
 Made by P̷̍̍y̴̓̾r̴͐͘o̶̊͒ ̷̈͂4̶̏̚2̴̰͗0̸͛̕
 """
+
+interlude = """Did someone say interlude? Cheers everybody :beers:"""
+
 individual_responses = {
     183680794286489600 :{
         "name": "DrHappybone",
