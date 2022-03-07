@@ -10,7 +10,9 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import validators
 import asyncio
-import responds
+import responses
+from random import randint
+import re
 
 TOKEN = str(open("../data.txt", "r").read())
 
@@ -26,7 +28,6 @@ def add_to_soundcloud_playlist(url):
         r'--user-data-dir=/home/pi/.config/chromium'
     )
     driver = webdriver.Chrome(chrome_options=chrome_options)
-    
     
     driver.get(url)
     
@@ -61,6 +62,11 @@ def add_to_soundcloud_playlist(url):
         driver.quit()
         return 'Sorry mate, the song is already in the playlist'
 
+def get_individual_response(id):
+    if id in responses.individual_responses:
+        length = len(responses.individual_responses[id]["responses"])-1
+        return responses.individual_responses[id]["responses"][randint(0,length)]
+    return None
 
 @client.event
 async def on_ready():
@@ -103,10 +109,13 @@ async def on_message(message):
     await semaphore.acquire()
     if message.author == client.user:
         semaphore.release()
-        return    
+        return
+    if re.search("interlu+de",str(message.content).strip().lower()):
+        await message.channel.send(responses.interlude)
+
     if str(message.channel).strip() == stream_requests_channel:
         if message.content.strip() == "!help":
-            await message.channel.send(responds.help)
+            await message.channel.send(responses.help)
             semaphore.release()
             return
         download_requested = message.content.strip().endswith(" -download")
@@ -118,6 +127,9 @@ async def on_message(message):
             link = remove_download_flag_from_message(link) 
         link = link.split("?")[0]
         if validators.url(link):
+            individual_response = get_individual_response(int(message.author.id))
+            if individual_response:
+                await message.channel.send(individual_response)
             track_title, is_soundcloud_link, is_playlist = get_track_data(link)
             if track_title==r"SoundCloud - Hear the world’s sounds":
                 await message.channel.send("This track doesnt exist")
