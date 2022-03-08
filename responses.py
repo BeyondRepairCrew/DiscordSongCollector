@@ -99,5 +99,14 @@ individual_responses = {
             """Beep beep boop""",
             """Happy drawing Grimfoe!"""
         ]
+    },
+    344782432446185483: {
+        "name": "ImTomo",
+        "responses": [
+            """Fuck everybody get out of the water! Its the great drunk shark!!! :shark:""",
+            """Big ups Tomo! :mechanical_arm:""",
+            """Fun fact: sharks dont have bones but they can still fossilize :shark: :thinking: """,
+            """Big ups to the twitch user known across every dnb stream on the interwebs!"""
+        ]
     }
 }
