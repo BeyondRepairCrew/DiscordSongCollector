@@ -209,7 +209,7 @@ async def on_message(message):
     if message.author == client.user:
         semaphore.release()
         return
-    if re.search("interlu+de",str(message.content).strip().lower()):
+    if re.search("inter[a-z]*lu+de",str(message.content).strip().lower()):
         await message.channel.send(responses.interlude)
 
     if message.content.strip()=="!test":
