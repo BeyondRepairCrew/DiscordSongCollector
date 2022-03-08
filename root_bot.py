@@ -156,6 +156,12 @@ def get_individual_response(id):
         return responses.individual_responses[id]["responses"][randint(0,length)]
     return None
 
+def get_random_mafa_response():
+    bitten = randint(1,5) == 1 
+    length = len(responses.mafa)-1
+    mafa_quote = responses.mafa[randint(0,length)]
+    return mafa_quote, bitten 
+
 @client.event
 async def on_ready():
     #dont know what to do with this funtion yet
@@ -212,9 +218,12 @@ async def on_message(message):
     if re.search("inter[a-z]*lu+de",str(message.content).strip().lower()):
         await message.channel.send(responses.interlude)
 
-    if message.content.strip()=="!test":
-        copy_local_db_to_postgres()
-
+    if message.content.strip() == "!petcat":
+        mafa_quote, bitten = get_random_mafa_response()
+        response = "Mafa the cat says: "+ mafa_quote 
+        await message.channel.send(response)
+        if bitten:
+            await message.reply("Ouchies, looks like you got bitten by the OG Mafa!", mention_author=True)
     if message.content.strip() == "!stats":
         await message.reply(responses.stats_me, mention_author=True)
         count = get_requests_count_for_discord_id(int(message.author.id))
