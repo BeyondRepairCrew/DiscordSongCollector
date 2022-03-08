@@ -16,6 +16,9 @@ Example usage:
 - Show the leader board of the people who posted the most requests!
 Example usage:
 ```!statsall```
+- Pet the OG kitty momma Mafa, but be careful she might bite you!
+Example usage:
+```!petcat```
 
 The playlist all these tracks are added to is here: https://soundcloud.com/luce-raspe/sets/root-dnbs-stream-requests
 
