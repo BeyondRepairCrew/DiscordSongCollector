@@ -14,14 +14,20 @@ from peewee import *
 import responses
 from random import randint
 import re
+import configparser
+#import postgresql
+import psycopg2
 
 TOKEN = str(open("../data.txt", "r").read())
+config = configparser.ConfigParser()
+config.read("config.ini")
 
 client = discord.Client()
 stream_requests_channel = "stream-requests"
 
 semaphore = asyncio.Semaphore()
 
+database_proxy = DatabaseProxy()
 db = SqliteDatabase('requesters.db')
 
 class Requester(Model):
@@ -29,11 +35,13 @@ class Requester(Model):
     name = CharField()
     requests_count = IntegerField()
     class Meta:
-        database = db
+        database = database_proxy
 
 
 def init_db():
     #db.connect()
+    database_proxy.initialize(db)
+
     db.create_tables([Requester])
 
 def add_to_soundcloud_playlist(url):
@@ -52,7 +60,7 @@ def add_to_soundcloud_playlist(url):
     sleep(6)
     driver.find_element(By.XPATH,
                         '//button[text()="Zu Playlist hinzufügen"]').click()
-    sleep(5)
+    sleep(7)
     list_item_a_tag = driver.find_element(
         By.XPATH, '''//a[@href="/luce-raspe/sets/root-dnbs-stream-requests"]/..''')
     song_already_added = False 
@@ -76,8 +84,44 @@ def add_to_soundcloud_playlist(url):
         driver.quit()
         return 'Sorry mate, the song is already in the playlist'
 
+def copy_local_db_to_postgres():
+    print("Backing up requests database")
+    global config
+    req_dict = {}
+    db = SqliteDatabase('requesters.db')
+    database_proxy.initialize(db)
+    all_requesters =  Requester.select().order_by(Requester.requests_count.desc()).limit(100)
+    for requester in all_requesters:
+        req_dict[requester.discord_id] = {
+            "name": requester.name,
+            "requests_count": requester.requests_count
+        }
+    db.close()
+    db_pg = PostgresqlDatabase(config["DATABASE_STUFF"]["db_name"], 
+        user=config["DATABASE_STUFF"]["user"], 
+        password=config["DATABASE_STUFF"]["pw"],
+        host=config["DATABASE_STUFF"]["host"], 
+        port=int(config["DATABASE_STUFF"]["port"])
+    )
+    database_proxy.initialize(db_pg)
+    for r_id in req_dict:
+    #requester = Requester.select().where(Requester.discord_id==r_id)
+        requester = Requester.get(Requester.discord_id==r_id)
+
+        if not requester:
+            #print(req_dict[r_id]["name"], " doesnt exist and will be created")
+            requester = Requester(name=req_dict[r_id]["name"], discord_id=r_id, requests_count=req_dict[r_id]["requests_count"])
+            print(requester.save())
+        else:
+            #print(req_dict[r_id]["name"], "exists and only the values will be changed")
+            requester.name=req_dict[r_id]["name"]
+            requester.requests_count = req_dict[r_id]["requests_count"]
+            requester.save()
+
+
 def increment_requests_counter_for_discord_id(discord_id, user_name):
-    #db.connect()
+    db = SqliteDatabase('requesters.db')
+    database_proxy.initialize(db)
     requester = None
     try:
         requester = Requester.get(Requester.discord_id==discord_id)
@@ -93,6 +137,8 @@ def increment_requests_counter_for_discord_id(discord_id, user_name):
     return requester.requests_count
 
 def get_requests_count_for_discord_id(discord_id):
+    db = SqliteDatabase('requesters.db')
+    database_proxy.initialize(db)
     try:
         requester = Requester.get(Requester.discord_id==discord_id)
         return int(requester.requests_count)
@@ -100,6 +146,8 @@ def get_requests_count_for_discord_id(discord_id):
         return 0
 
 def get_top_requester(count):
+    db = SqliteDatabase('requesters.db')
+    database_proxy.initialize(db)
     return Requester.select().order_by(Requester.requests_count.desc()).limit(count)
 
 def get_individual_response(id):
@@ -164,6 +212,9 @@ async def on_message(message):
     if re.search("interlu+de",str(message.content).strip().lower()):
         await message.channel.send(responses.interlude)
 
+    if message.content.strip()=="!test":
+        copy_local_db_to_postgres()
+
     if message.content.strip() == "!stats":
         await message.reply(responses.stats_me, mention_author=True)
         count = get_requests_count_for_discord_id(int(message.author.id))
@@ -224,6 +275,7 @@ async def on_message(message):
                         response += " has been added to the playlist "
                         response += "(This took %.2f seconds)" % (timestamp2-timestamp1)
                         increment_requests_counter_for_discord_id(int(message.author.id), str(message.author.name))
+                        copy_local_db_to_postgres()
                         await message.channel.send(response)
                     else:
                         await message.channel.send(result)
@@ -255,4 +307,11 @@ async def on_message(message):
 
 if __name__ == '__main__':
     init_db()
-    client.run(TOKEN)
+    copy_local_db_to_postgres()
+    while(True):
+        try:
+            client.run(TOKEN)
+        except Exception as e:
+            print(e)
+            client = discord.Client()
+            sleep(5)
