@@ -10,6 +10,17 @@ Example usage:
 - Just download the track and get it sent here
 Example usage: 
 ```<soundcloud-link> -downloadonly```
+
+- Add a youtube track to the playlist by simply posting the link in the #stream-requests channel
+Example usage: 
+```<youtube-link>```
+- Add a youtube track to the playlist and get the downloaded file sent here
+Example usage: 
+```<youtube-link> -download```
+- Just download the track and get it sent here
+Example usage: 
+```<youtube-link> -downloadonly```
+
 - Show your personal stats!
 Example usage:
 ```!stats```
