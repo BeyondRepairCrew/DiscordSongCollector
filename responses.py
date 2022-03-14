@@ -31,8 +31,8 @@ Example usage:
 Example usage:
 ```!petcat```
 
-The playlist all these tracks are added to is here: https://soundcloud.com/luce-raspe/sets/root-dnbs-stream-requests
-
+Soundcloud playlist 🠊 https://soundcloud.com/luce-raspe/sets/root-dnbs-stream-requests
+YouTube playlist 🠊 https://www.youtube.com/playlist?list=PLiKkZD8QkOII-z_Jf_FS3rXJ0wZF5uWM1
 Made by P̷̍̍y̴̓̾r̴͐͘o̶̊͒ ̷̈͂4̶̏̚2̴̰͗0̸͛̕
 """
 
