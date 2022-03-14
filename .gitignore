@@ -3,3 +3,4 @@ mp3/*
 __pycache__
 *.db
 *.ini
+*.json
