@@ -333,6 +333,12 @@ async def on_message(message):
                 await message.channel.send(individual_response)
             
             track_data = get_hybrid_track_data(link)
+
+            if track_data["type"]=="error":
+                await message.channel.send("Something about this link is weird :thinking: check the url and try again :mechanical_arm:")
+                semaphore.release()
+                return
+
             track_title = track_data["title"]
             is_soundcloud_link = track_data["type"]=="soundcloud"
             #track_title, is_soundcloud_link, is_playlist = get_track_data(link)
