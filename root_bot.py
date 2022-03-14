@@ -187,30 +187,7 @@ def get_random_mafa_response():
 async def on_ready():
     #dont know what to do with this funtion yet
     pass
-
-def get_track_data(url):
-    try:
-        req = urllib2.urlopen(url)
-        soup = BeautifulSoup(req,features="lxml")
-        title = str(soup.title.string).replace("Stream ","",1).replace(" | Listen online for free on SoundCloud","",1)
-        is_soundcloud_link= "soundcloud.com" in req.geturl()    
-        is_soundcloud_playlist= "/sets/" in req.geturl()
-        return title,is_soundcloud_link, is_soundcloud_playlist
-    except:
-        return "error",False,False
-
-def get_yt_track_data(url):
-    try:
-        req = urllib2.urlopen(url)
-        soup = BeautifulSoup(req,features="lxml")
-        title = str(soup.title.string).replace("- YouTube", "",1).strip()
-        is_youtube_link= "youtube.com" in req.geturl()    
-        is_youtube_playlist= "/playlist?" in req.geturl()
-        is_youtube_channel = "/channel/" in req.geturl()
-        return title, is_youtube_link, is_youtube_playlist, req.geturl(), is_youtube_channel
-    except:
-        return "error", False, False, "", is_youtube_channel
-
+       
 def get_hybrid_track_data(url):
     result = {
         "type": "",
