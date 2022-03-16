@@ -304,6 +304,7 @@ async def on_message(message):
         count = get_requests_count_for_discord_id(int(message.author.id))
         if count == 0:
             await message.reply("Hmm i dont seem to have any records of you. Increase your stats by requesting new tracks!",mention_author=True)
+            await message.reply(responses.never_seen_this_man_gif, mention_author=True)
         elif count==1:
             await message.reply(responses.stats_me_one, mention_author=True)
         else:
