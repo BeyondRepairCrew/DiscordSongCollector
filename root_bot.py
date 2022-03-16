@@ -392,6 +392,8 @@ async def on_message(message):
                         await message.channel.send("Oof, that file is too heavy for discord, maximal file size is 8mb")    
                     if not file_name=="error":
                         os.remove(file_name)
+                semaphore.release()
+                return
             #handle youtube stuff
             link = message.content
             if link.endswith(" -download") or link.endswith(" -downloadonly"):
