@@ -46,6 +46,8 @@ stats_me_more_than_one = """Wow, looks like you added %3d tracks! Big up! :mecha
 
 stats_all = ":trophy: Here they are, the Top %2d request beasts :trophy:"
 
+never_seen_this_man_gif = "https://c.tenor.com/oAsCitPf2KkAAAAC/loki-ive-never-met-this-man.gif"
+
 individual_responses = {
     183680794286489600 :{
         "name": "DrHappybone",
