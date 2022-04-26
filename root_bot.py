@@ -2,6 +2,7 @@ import discord
 import glob
 import os
 import urllib.request as urllib2
+from subprocess import Popen, PIPE
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -24,6 +25,7 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client import tools
 from pytube import YouTube
+from pytube.exceptions import VideoUnavailable
 import requests 
 import httplib2
 import sys
@@ -207,10 +209,10 @@ def get_hybrid_track_data(url):
             result["link_specific_data"]["is_private"] = '{"simpleText":"Privates Video"}' in req.text
             result["title"] = str(soup.title.string).replace("- YouTube", "",1).strip()
             result["link_specific_data"]["is_youtube_playlist"] = "/playlist?" in req.url
-            result["link_specific_data"]["is_youtube_channel"] = "/channel/" in req.url
+            result["link_specific_data"]["is_youtube_channel"] = "/channel/" in req.url or "/c/" in req.url
             result["link_specific_data"]["url"] = req.url
-            
             return result
+        
     except Exception as e:
         print(e)
         result["type"] = "error"
@@ -231,11 +233,18 @@ def add_video_to_playlist(youtube,videoID,playlistID):
         }).execute()
     
 def download_with_scdl(link):
-    path = "mp3"
-    Path(path).mkdir(parents=True, exist_ok=True)
-    stream = os.popen('scdl -l ' + link + ' --path ' + path)
-    output = stream.read()
-    print(output)
+    path = r"./mp3"
+    #Path(path).mkdir(parents=True, exist_ok=True)
+    #command = 'scdl -l ' + link + ' --path ' + path
+    #print(command)
+    #stream = os.Popen(command)
+    #output = stream.read()
+    #print(output)
+
+    Path(path).mkdir(parents=True, exist_ok=True)    
+    process = Popen(['scdl', '-l',link,'--path',path], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = process.communicate()
+    print(stdout)
 
 def get_latest_file():
     try:
@@ -311,7 +320,7 @@ async def on_message(message):
             response = responses.stats_me_more_than_one % count
             await message.reply(response, mention_author = True)
     if message.content.strip()== "!statsall":
-        await message.channel.send(get_stats_scoreboard(3)) 
+        await message.channel.send(get_stats_scoreboard(5)) 
 
 
     if str(message.channel).strip() == stream_requests_channel:
@@ -329,16 +338,22 @@ async def on_message(message):
             link = remove_download_flag_from_message(link) 
         #link = link.split("?")[0]
         if validators.url(link):
+            
+            track_data = get_hybrid_track_data(link)
+            print(track_data)
+            try:
+                if track_data["type"]=="error":
+                    await message.channel.send("Something about this link is weird :thinking: check the url and try again :mechanical_arm:")
+                    semaphore.release()
+                    return
+            except TypeError:
+                semaphore.release()
+                return
+
             individual_response = get_individual_response(int(message.author.id))
             if individual_response:
                 await message.channel.send(individual_response)
             
-            track_data = get_hybrid_track_data(link)
-
-            if track_data["type"]=="error":
-                await message.channel.send("Something about this link is weird :thinking: check the url and try again :mechanical_arm:")
-                semaphore.release()
-                return
 
             track_title = track_data["title"]
             is_soundcloud_link = track_data["type"]=="soundcloud"
@@ -440,9 +455,17 @@ async def on_message(message):
                         print(e)
                         await message.channel.send('Sorry mate, something went wrong. Tell Pyro420 and he will try to find out what happened.')
                 if download_requested:
+                    #await message.channel.send('Sorry mate, youtube download functionality is disabled because some piece of shit library (pytube) isnt working atm. Adding to playlist works tho.')
+                    #semaphore.release()
+                    #return
                     response = "Downloading " +str(title) + ", please give me a sec, this can sometimes take a while"
                     await message.channel.send(response)
-                    download_video(url)
+                    try:
+                        download_video(url)
+                    except VideoUnavailable:
+                        await message.channel.send("Sorry mate, this video isnt available and cannot be downloaded :smiling_face_with_tear:")
+                        semaphore.release()
+                        return
                     file_name = get_latest_file()
                     if file_name=="error":
                         response = "Something went wrong while downloading "
