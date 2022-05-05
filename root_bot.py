@@ -282,13 +282,13 @@ def get_authenticated_service():
     return build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
         http=credentials.authorize(httplib2.Http()))
 
-def download_video(video_url):    
-    yt = YouTube(video_url)
-    video = yt.streams.filter(only_audio=True).first()
-    out_file = video.download(output_path="mp3")
-    base, ext = os.path.splitext(out_file)
-    new_file = base + ".mp3"
-    os.rename(out_file, new_file)
+def new_download_video(video_url):
+    print("new download video: ", video_url)     
+    command = 'youtube-dl '+video_url+' -x --audio-format "mp3" -o "./mp3/%(title)s.%(ext)s"'
+    print('command:',command)
+    stream = os.popen(command)
+    output = stream.read()        
+
 
 @client.event
 async def on_message(message):
@@ -452,7 +452,6 @@ async def on_message(message):
                         await message.channel.send(response)
                     except Exception as e:
                         print("[EXCEPTION] occured adding youtube link to playlist",link, "| stacktrace:")
-                        print(e)
                         await message.channel.send('Sorry mate, something went wrong. Tell Pyro420 and he will try to find out what happened.')
                 if download_requested:
                     #await message.channel.send('Sorry mate, youtube download functionality is disabled because some piece of shit library (pytube) isnt working atm. Adding to playlist works tho.')
@@ -461,8 +460,9 @@ async def on_message(message):
                     response = "Downloading " +str(title) + ", please give me a sec, this can sometimes take a while"
                     await message.channel.send(response)
                     try:
-                        download_video(url)
-                    except VideoUnavailable:
+                        new_download_video(url)
+                    except Exception as e:
+                        print(e)
                         await message.channel.send("Sorry mate, this video isnt available and cannot be downloaded :smiling_face_with_tear:")
                         semaphore.release()
                         return
