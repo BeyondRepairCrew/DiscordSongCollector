@@ -16,16 +16,6 @@ import responses
 from random import randint
 import re
 import configparser
-#import postgresql
-import psycopg2
-from pytube import YouTube
-from apiclient.discovery import build
-from apiclient.errors import HttpError
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.file import Storage
-from oauth2client import tools
-from pytube import YouTube
-from pytube.exceptions import VideoUnavailable
 from ytmusicapi import YTMusic
 import requests 
 import httplib2
