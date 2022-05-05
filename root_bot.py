@@ -26,6 +26,7 @@ from oauth2client.file import Storage
 from oauth2client import tools
 from pytube import YouTube
 from pytube.exceptions import VideoUnavailable
+from ytmusicapi import YTMusic
 import requests 
 import httplib2
 import sys
@@ -231,7 +232,16 @@ def add_video_to_playlist(youtube,videoID,playlistID):
                 }
             }
         }).execute()
-    
+
+def new_add_video_to_playlist(video_id, playlist_id):
+    ytmusic = YTMusic('headers_auth.json')
+    response = ytmusic.add_playlist_items(
+        playlist_id, 
+        [video_id],
+        duplicates=True
+    )
+    return response["status"]
+
 def download_with_scdl(link):
     path = r"./mp3"
     #Path(path).mkdir(parents=True, exist_ok=True)
@@ -440,16 +450,19 @@ async def on_message(message):
                     await message.channel.send("Now adding "+str(title))
                     try:
                         video_id = str(url).split("&")[0].split("?v=")[1]
-                        youtube = get_authenticated_service()
-                        add_video_to_playlist(youtube,video_id,"PLiKkZD8QkOII-z_Jf_FS3rXJ0wZF5uWM1")
-                        timestamp2 = time()
-                        response = "Yes mate, "
-                        response += str(title)
-                        response += " has been added to the playlist "
-                        response += "(This took %.2f seconds)" % (timestamp2-timestamp1)
-                        increment_requests_counter_for_discord_id(int(message.author.id), str(message.author.name))
-                        copy_local_db_to_postgres()
-                        await message.channel.send(response)
+                        
+                        status = new_add_video_to_playlist(video_id,"PLiKkZD8QkOII-z_Jf_FS3rXJ0wZF5uWM1")
+                        if status=="STATUS_SUCCEEDED":
+                            timestamp2 = time()
+                            response = "Yes mate, "
+                            response += str(title)
+                            response += " has been added to the playlist "
+                            response += "(This took %.2f seconds)" % (timestamp2-timestamp1)
+                            increment_requests_counter_for_discord_id(int(message.author.id), str(message.author.name))
+                            copy_local_db_to_postgres()
+                            await message.channel.send(response)
+                        else:
+                            await message.channel.send('Sorry mate, something went wrong. Tell Pyro420 and he will try to find out what happened.')
                     except Exception as e:
                         print("[EXCEPTION] occured adding youtube link to playlist",link, "| stacktrace:")
                         await message.channel.send('Sorry mate, something went wrong. Tell Pyro420 and he will try to find out what happened.')
